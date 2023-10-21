@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro'
+
+// Astro generates paths for all of the items returned in the array
+// Define params, and send data into props
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob('../posts/*.md')
+  const uniqueTags = [...new Set(allPosts.map(post => post.frontmatter.tags).flat())] // Retrieves all unique tags across all posts
+  return uniqueTags.map(tag => {
+    const filteredPosts = allPosts.filter(post => post.frontmatter.tags?.includes(tag)) // Filter list of blog posts for a tag
+    return {
+      params: { tag },  // define name of a dynamic page route
+      props: { posts: filteredPosts }   // send data to template
+    }
+  });
+}
+
+// Tag template
+const { tag } = Astro.params;
+const { posts } = Astro.props
+---
+<BaseLayout pageTitle={tag}>
+  <p>Posts tagged with {tag}</p>
+  <ul>
+    {posts.map(post => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+  </ul>
+</BaseLayout>
